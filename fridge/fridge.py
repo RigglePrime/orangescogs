@@ -2,6 +2,7 @@
 import logging
 import random
 import datetime
+from time import time
 from typing import Union
 
 # Discord Imports
@@ -63,6 +64,7 @@ class Fridge(BaseCog):
         default_guild = {
             "fridge": None,
             "fridgetime": None,
+            "last_tipped": 0,
             "bracer": None,
             "temperature": -10,
             "items": [
@@ -320,6 +322,13 @@ class Fridge(BaseCog):
             await self.config.guild(ctx.guild).bracer.set(None)
             await ctx.send(message)
             return
+
+        last_tipped = await self.config.guild(ctx.guild).last_tipped()
+        if time() - last_tipped < 120: # Two minutes between tippings
+            await ctx.send("The fridge is still recovering!")
+            return
+
+        await self.config.guild(ctx.guild).last_tipped.set(time())
 
         amount = random.randint(1, 10)
         fridge = self.fridges[ctx.guild]
